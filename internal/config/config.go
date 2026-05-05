@@ -112,7 +112,23 @@ type UIConfig struct {
 	// once we have a mechanism to deprecate the old name softly.
 	AutoRefreshInterval        int  `toml:"auto_refresh_interval"`
 	FlashMessageDisplaySeconds int  `toml:"flash_message_display_seconds"`
-	NoMouse                    bool `toml:"no_mouse"`
+	MouseSupport               bool `toml:"mouse_support"`
+}
+
+func (u *UIConfig) UnmarshalTOML(data any) error {
+	switch v := data.(type) {
+	case map[string]any:
+		if p, ok := v["mouse_support"]; ok {
+			if pBool, isBool := p.(bool); isBool {
+				u.MouseSupport = pBool
+			} else {
+				return fmt.Errorf("invalid type for 'mouse_support' in ui configuration: expected bool, got %T", p)
+			}
+		} else {
+			u.MouseSupport = true
+		}
+	}
+	return nil
 }
 
 func GetExpiringFlashMessageTimeout(c *Config) time.Duration {
